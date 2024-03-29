@@ -9,6 +9,12 @@
     <title>Todo List</title>
 </head>
 
+<style>
+    .completed {
+        text-decoration: line-through
+    }
+</style>
+
 <body>
 
     <div class="container">
@@ -18,8 +24,8 @@
 
                 <!-- 입력부분 -->
                 <div class="input-group mb-3 mt-3">
-                    <input type="text"  id="todoInput" placeholder="New talk">
-                    <button onclick="addTodo()" id="addTodo">Add</button>
+                    <input type="text" id="todoInput" placeholder="New task">
+                    <button class="btn btn-primary" onclick="addTodo()" id="addTodo">Add</button>
                 </div>
 
                 <!-- 리스트 -->
@@ -36,34 +42,93 @@
         crossorigin="anonymous"></script>
 
     <script>
-        var inputbox = inputbox = document.getElementById('todoInput');
+        var inputbox = document.getElementById('todoInput')
         var list = document.getElementById("todoList")
-        var item = document.createElement("li")
 
+        list.addEventListener("click", function (t) {
+            if (t.target.tagName == "input") {
+                t.target.classList.toggle("completed")
+            } else if (t.target.tagName == "SPAN") {
+                t.target.parentElement.remove()
+            }
+            storeTodos()
+        })
 
         function addTodo() {
-
-            if (inputbox.value == '') {
-                alert("뭐라도 적어줘..");
+            var text = inputbox.value
+            if (text == "") {
+                alert("뭐라도 적어줘..")
             } else {
-                item.innerText = text;
+                var item = document.createElement("li")
+                var checkbox = document.createElement("input")
+
+                item.innerText = text
                 item.classList.add("list-group-item")
-
                 list.appendChild(item)
-                let span = document.createElement("SPAN");
-                span.innerHTML = "\u00d7";
-                li.appendChild(span)
-            }
 
+                checkbox.type = "checkbox"
+                checkbox.classList.add("form-check-input")
+                item.appendChild(checkbox)
+
+                checkbox.addEventListener("click", function () {
+                    item.classList.toggle("completed")
+                    storeTodos()
+                });
+
+                let span = document.createElement("SPAN")
+                span.innerHTML = "\u00d7"
+                item.appendChild(span)
+            }
+            text = ""
+            storeTodos()
         }
 
         function storeTodos() {
-            localStorage.setItem("data", listcontainer.innerHTML);
+            var todos = []
+            var items = list.getElementsByTagName("li")
+            for (var i = 0; i < items.length; i++) {
+                var todo = {
+                    text: items[i].innerText,
+                    completed: items[i].classList.contains("completed")
+                };
+                todos.push(todo);
+            }
+            localStorage.setItem("todos", JSON.stringify(todos))
         }
 
         function loadTodos() {
-            listcontainer.innerHTML = localStorage.getItem("data");
+            var todos = localStorage.getItem("todos")
+            if (todos) {
+                var todos = JSON.parse(todos)
+                todos.forEach(function (todo) {
+                    var item = document.createElement("li")
+                    var checkbox = document.createElement("input")
+
+                    item.innerText = todo.text.slice(0, -1)//삭제버튼(x) 제거 후 넣어주기
+
+                    item.classList.add("list-group-item")
+                    if (todo.completed) {
+                        item.classList.add("completed")
+                    }
+                    list.appendChild(item)
+
+                    checkbox.type = "checkbox"
+                    checkbox.classList.add("form-check-input")
+                    checkbox.checked = todo.completed
+                    item.appendChild(checkbox)
+
+                    checkbox.addEventListener("click", function () {
+                        item.classList.toggle("completed")
+                    });
+
+                    let span = document.createElement("SPAN")
+                    span.innerHTML = "\u00d7"
+                    item.appendChild(span)
+                });
+            }
         }
+
+        loadTodos()
     </script>
 
 
